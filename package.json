@@ -1,0 +1,36 @@
+{
+  "name": "reddit-rag-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Camus1859/reddit-rag-project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Camus1859/reddit-rag-project/issues"
+  },
+  "homepage": "https://github.com/Camus1859/reddit-rag-project#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@pinecone-database/pinecone": "^6.1.3",
+    "@types/node": "^25.0.9",
+    "dotenv": "^17.2.3",
+    "googleapis": "^170.1.0",
+    "openai": "^6.16.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "youtube-captions-scraper": "^2.0.3",
+    "youtube-transcript": "github:Camus1859/youtube-transcript#fix-captions",
+    "youtubei.js": "^16.0.1",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^5.1.2"
+  }
+}
