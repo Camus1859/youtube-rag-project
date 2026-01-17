@@ -54,21 +54,32 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
 const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
-  const videoIds = await getVideoIds(channelId, 10);
+  const videoIds = await getVideoIds(channelId, 2);
   const transcripts = await getTranscripts(videoIds);
 
   const allChunks = transcripts.flatMap((t) => chunkText(t));
   return allChunks;
 };
 
-const chunkText = (text: string, chunkSize = 500, overlap = 50): string[] => {
-  const words = text.split(" ");
-  const chunks: string[] = [];
-  const step = chunkSize - overlap;
+const chunkText = (
+  text: string,
+  wordsPerChunk = 500,
+  overlapWords = 50,
+): string[] => {
+  const allWords = text.split(" ");
 
-  for (let i = 0; i < words.length; i += step) {
-    const chunk = words.slice(i, i + chunkSize).join(" ");
-    chunks.push(chunk);
+  const chunks: string[] = [];
+  const slideForward = wordsPerChunk - overlapWords;
+
+  let windowStart = 0;
+
+  while (windowStart < allWords.length) {
+    const windowEnd = windowStart + wordsPerChunk;
+    const wordsInWindow = allWords.slice(windowStart, windowEnd);
+    const chunkText = wordsInWindow.join(" ");
+    chunks.push(chunkText);
+
+    windowStart = windowStart + slideForward;
   }
 
   return chunks;
