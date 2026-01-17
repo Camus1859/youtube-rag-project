@@ -25,6 +25,7 @@
     "googleapis": "^170.1.0",
     "openai": "^6.16.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "youtube-captions-scraper": "^2.0.3",
     "youtube-transcript": "github:Camus1859/youtube-transcript#fix-captions",
