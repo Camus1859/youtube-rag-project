@@ -52,13 +52,26 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
   return transcripts;
 };
 
-const fireItUp = async (channelName: string) => {
+const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
   const videoIds = await getVideoIds(channelId, 10);
   const transcripts = await getTranscripts(videoIds);
 
-  console.log(`Got ${transcripts.length} transcripts`);
-  console.log("First transcript preview:", transcripts[0]?.substring(0, 200));
+  const allChunks = transcripts.flatMap((t) => chunkText(t));
+  return allChunks;
 };
 
-fireItUp("Ezra Klein");
+const chunkText = (text: string, chunkSize = 500, overlap = 50): string[] => {
+  const words = text.split(" ");
+  const chunks: string[] = [];
+  const step = chunkSize - overlap;
+
+  for (let i = 0; i < words.length; i += step) {
+    const chunk = words.slice(i, i + chunkSize).join(" ");
+    chunks.push(chunk);
+  }
+
+  return chunks;
+};
+
+export { fireItUp };
