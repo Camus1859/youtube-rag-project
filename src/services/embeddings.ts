@@ -3,17 +3,24 @@ import "dotenv/config";
 
 const openai = new OpenAI();
 
-const getEmbedding = async (text: string): Promise<number[]> => {
+const getEmbeddingOfUserInput = async (text: string): Promise<number[]> => {
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
     encoding_format: "float",
   });
 
-  if (response.data && response.data.length > 0 && response.data[0]) {
-    return response.data[0].embedding;
+  if (response.data.length === 0) {
+    throw new Error("No embedding returned from OpenAI");
   }
-  throw new Error("Failed to generate embedding");
+
+  const embedding = response.data[0]?.embedding;
+
+  if (!embedding) {
+    throw new Error("No embedding data found");
+  }
+
+  return embedding;
 };
 
 const getEmbeddings = async (texts: string[]): Promise<number[][]> => {
@@ -26,4 +33,4 @@ const getEmbeddings = async (texts: string[]): Promise<number[][]> => {
   return response.data.map((item) => item.embedding);
 };
 
-export { getEmbedding, getEmbeddings };
+export { getEmbeddingOfUserInput, getEmbeddings };
