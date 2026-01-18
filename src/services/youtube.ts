@@ -1,17 +1,34 @@
 import { YoutubeTranscript } from "youtube-transcript";
 import "dotenv/config";
+import { extractHandleFromUrl, extractChannelIdFromUrl } from "../utils/urlParser.js";
+import { chunkText } from "../utils/textProcessing.js";
 
 const apiKey = process.env.YOUTUBE_API_KEY;
 if (!apiKey) throw new Error("YOUTUBE_API_KEY is not defined");
 
-const getYoutuberId = async (channelName: string): Promise<string> => {
-  const endpoint = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(channelName)}&type=channel&key=${apiKey}`;
+const getYoutuberId = async (input: string): Promise<string> => {
+  const channelIdFromUrl = extractChannelIdFromUrl(input);
+  if (channelIdFromUrl) {
+    return channelIdFromUrl;
+  }
+
+  let handle = extractHandleFromUrl(input);
+  if (!handle) {
+    handle = input.startsWith("@") ? input.slice(1) : input;
+  }
+
+  const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent(handle)}&key=${apiKey}`;
 
   try {
     const res = await fetch(endpoint);
-    if (!res.ok) throw new Error("Failed to fetch YouTubers ID");
+    if (!res.ok) throw new Error("Failed to fetch YouTube channel ID");
     const data = await res.json();
-    return data.items[0].id.channelId;
+
+    if (!data.items || data.items.length === 0) {
+      throw new Error(`No channel found for handle: ${handle}`);
+    }
+
+    return data.items[0].id;
   } catch (e) {
     console.error(e);
     throw e;
@@ -54,35 +71,11 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
 const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
-  const videoIds = await getVideoIds(channelId, 2);
+  const videoIds = await getVideoIds(channelId, 5);
   const transcripts = await getTranscripts(videoIds);
 
   const allChunks = transcripts.flatMap((t) => chunkText(t));
   return allChunks;
-};
-
-const chunkText = (
-  text: string,
-  wordsPerChunk = 500,
-  overlapWords = 50,
-): string[] => {
-  const allWords = text.split(" ");
-
-  const chunks: string[] = [];
-  const slideForward = wordsPerChunk - overlapWords;
-
-  let windowStart = 0;
-
-  while (windowStart < allWords.length) {
-    const windowEnd = windowStart + wordsPerChunk;
-    const wordsInWindow = allWords.slice(windowStart, windowEnd);
-    const chunkText = wordsInWindow.join(" ");
-    chunks.push(chunkText);
-
-    windowStart = windowStart + slideForward;
-  }
-
-  return chunks;
 };
 
 export { fireItUp };
