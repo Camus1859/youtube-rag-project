@@ -22,8 +22,12 @@ const TopTopicSchema = z.object({
   frequency: z.string(),
 });
 
+const ActionSchema = z.enum(["ask_clarification", "provide_analysis", "need_more_data"]);
+
 const UserInsightSchema = z.object({
   message: z.string(),
+  action: ActionSchema,
+  followUpOptions: z.array(z.string()).optional(),
   interests: z.array(InterestSchema).optional(),
   personalityTraits: z.array(PersonalityTraitSchema).optional(),
   speakingStyle: SpeakingStyleSchema.optional(),
