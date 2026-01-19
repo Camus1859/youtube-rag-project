@@ -2,7 +2,7 @@
 
 A full-stack RAG application that ingests YouTube channel content and enables conversational Q&A powered by AI.
 
-**Status:** Works locally. Production deployment requires Google OAuth to access YouTube's Captions API from cloud servers.
+**Status:** Works locally. Production deployment requires Google OAuth to access YouTube's Captions API from cloud servers. This is a WIP
 
 ### Features
 
