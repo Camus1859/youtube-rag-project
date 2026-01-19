@@ -24,13 +24,20 @@ const textToVector = async (text: string): Promise<number[]> => {
 };
 
 const textsToVectors = async (texts: string[]): Promise<number[][]> => {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: texts,
-    encoding_format: "float",
-  });
+  const BATCH_SIZE = 100;
+  const allEmbeddings: number[][] = [];
 
-  return response.data.map((item) => item.embedding);
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: batch,
+      encoding_format: "float",
+    });
+    allEmbeddings.push(...response.data.map((item) => item.embedding));
+  }
+
+  return allEmbeddings;
 };
 
 export { textToVector, textsToVectors };
