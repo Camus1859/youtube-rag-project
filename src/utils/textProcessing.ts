@@ -43,7 +43,6 @@ const truncateHistory = (history: Message[]): Message[] => {
     }
   }
 
-  console.log(`Truncated history from ${history.length} to ${truncated.length} messages`);
   return truncated;
 };
 

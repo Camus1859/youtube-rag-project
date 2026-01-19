@@ -8,6 +8,11 @@ const BATCH_SIZE = 50;
 const upsertChunks = async (input: string) => {
   const namespace = getNamespaceFromInput(input);
   const chunks = await fireItUp(input);
+
+  if (chunks.length === 0) {
+    throw new Error("No transcripts found for this channel. The channel may not exist or may not have any videos with captions.");
+  }
+
   const vectors = await textsToVectors(chunks);
 
   const records = chunks.map((chunk, i) => ({
@@ -19,10 +24,8 @@ const upsertChunks = async (input: string) => {
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
     await pcIndex.namespace(namespace).upsert(batch);
-    console.log(`Upserted batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length} chunks`);
   }
 
-  console.log(`Total: ${records.length} chunks upserted to namespace: ${namespace}`);
 };
 
 export { upsertChunks };
