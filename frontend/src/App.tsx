@@ -13,7 +13,7 @@ function App() {
   const [loadingStep, setLoadingStep] = useState(0)
 
   const loadingSteps = [
-    { step: 1, title: 'Fetching video IDs', detail: 'Querying YouTube Data API for 20 most recent uploads' },
+    { step: 1, title: 'Fetching video IDs', detail: 'Querying YouTube Data API for 5 most recent uploads' },
     { step: 2, title: 'Extracting transcripts', detail: 'Downloading auto-generated captions via youtube-transcript API' },
     { step: 3, title: 'Chunking text', detail: 'Splitting transcripts into 500-char segments with 100-char overlap' },
     { step: 4, title: 'Generating embeddings', detail: 'Converting chunks to vectors using OpenAI text-embedding-3-small' },
@@ -162,10 +162,20 @@ function App() {
     setInputValue('')
   }
 
+  const ragTooltip = (
+    <span className="rag-tooltip">
+      RAG
+      <span className="tooltip-text">
+        <strong>Retrieval Augmented Generation</strong> — combines LLMs with external knowledge retrieval. Instead of relying only on training data, it fetches relevant content and uses it as context to generate accurate responses.
+        <a href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation#RAG_and_LLM_limitations" target="_blank" rel="noopener noreferrer" className="tooltip-link">Learn more</a>
+      </span>
+    </span>
+  )
+
   if (view === 'input') {
     return (
       <div className="container">
-        <h1>YouTube RAG Analyzer</h1>
+        <h1>YouTube {ragTooltip} Analyzer</h1>
         <p className="subtitle">Analyze any YouTube creator using AI</p>
         <div className="instructions">
           <p><strong>How to get the channel URL:</strong></p>
@@ -194,7 +204,7 @@ function App() {
     const currentStep = loadingSteps[loadingStep]
     return (
       <div className="container">
-        <h1>YouTube RAG Analyzer</h1>
+        <h1>YouTube {ragTooltip} Analyzer</h1>
         <div className="loading">
           <div className="spinner"></div>
           <div className="loading-steps">
@@ -217,7 +227,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>YouTube RAG Analyzer</h1>
+      <h1>YouTube {ragTooltip} Analyzer</h1>
       <div className="chat-header">
         <p className="chat-title">Analyzing: {channelInput}</p>
         <button className="new-btn" onClick={handleNew}>New</button>

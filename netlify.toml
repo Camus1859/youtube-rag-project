@@ -8,6 +8,7 @@
 [dev]
   command = "npm run dev"
   targetPort = 5173
+  functionsTimeout = 120
   port = 8888
   autoLaunch = false
   framework = "#custom"

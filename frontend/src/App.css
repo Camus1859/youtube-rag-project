@@ -333,3 +333,66 @@ input:disabled {
 .chat-messages::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.rag-tooltip {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dashed #646cff;
+  color: #646cff;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  background: #242424;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #ccc;
+  line-height: 1.5;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.tooltip-text strong {
+  color: #fff;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #444 transparent transparent transparent;
+}
+
+.rag-tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-link {
+  display: block;
+  margin-top: 0.5rem;
+  color: #646cff;
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.tooltip-link:hover {
+  text-decoration: underline;
+}
