@@ -166,7 +166,7 @@ function App() {
     <span className="rag-tooltip">
       RAG
       <span className="tooltip-text">
-        <strong>Retrieval Augmented Generation</strong> — combines LLMs with external knowledge retrieval. Instead of relying only on training data, it fetches relevant content and uses it as context to generate accurate responses.
+        <strong>Retrieval Augmented Generation</strong> combines LLMs with external knowledge retrieval. Instead of relying only on training data, it fetches relevant content and uses it as context to generate accurate responses.
         <a href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation#RAG_and_LLM_limitations" target="_blank" rel="noopener noreferrer" className="tooltip-link">Learn more</a>
       </span>
     </span>
@@ -176,7 +176,8 @@ function App() {
     return (
       <div className="container">
         <h1>YouTube {ragTooltip} Analyzer</h1>
-        <p className="subtitle">Analyze any YouTube creator using AI</p>
+        <p className="subtitle">Ask questions answered by their actual video transcripts</p>
+        <p className="subtitle-note">Unlike ChatGPT, responses come from what they've actually said, not general knowledge.</p>
         <div className="instructions">
           <p><strong>How to get the channel URL:</strong></p>
           <ol>
