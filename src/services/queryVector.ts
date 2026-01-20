@@ -52,6 +52,7 @@ const askQuestion = async (
   question: string,
   conversationHistory: Message[] = []
 ): Promise<UserInsight> => {
+  const startTime = Date.now();
   const namespace = getNamespaceFromInput(input);
   const vector = await textToVector(question);
 
@@ -71,8 +72,10 @@ const askQuestion = async (
   ];
 
   const claudeResponse = await sendMessageToClaude(messages, SYSTEM_PROMPT);
+  const latencyMs = Date.now() - startTime;
 
   const rawText = claudeResponse.content[0]?.text ?? "";
+  const { input_tokens, output_tokens } = claudeResponse.usage;
 
   const cleanedText = rawText
     .replace(/^```json\s*/i, "")
@@ -80,19 +83,36 @@ const askQuestion = async (
     .replace(/\s*```$/i, "")
     .trim();
 
+  const baseMetrics = {
+    inputTokens: input_tokens,
+    outputTokens: output_tokens,
+    latencyMs,
+  };
+
   try {
     const parsed = JSON.parse(cleanedText);
     const result = UserInsightSchema.safeParse(parsed);
 
     if (result.success) {
-      return result.data;
+      return {
+        ...result.data,
+        metrics: { ...baseMetrics, schemaValidated: true },
+      };
     } else {
       console.error("Zod validation failed:", result.error.format());
-      return { message: rawText, action: "provide_analysis" };
+      return {
+        message: rawText,
+        action: "provide_analysis",
+        metrics: { ...baseMetrics, schemaValidated: false },
+      };
     }
   } catch {
     console.error("JSON parsing failed, returning raw response");
-    return { message: rawText, action: "provide_analysis" };
+    return {
+      message: rawText,
+      action: "provide_analysis",
+      metrics: { ...baseMetrics, schemaValidated: false },
+    };
   }
 };
 

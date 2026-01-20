@@ -24,6 +24,13 @@ const TopTopicSchema = z.object({
 
 const ActionSchema = z.enum(["ask_clarification", "provide_analysis", "need_more_data"]);
 
+const MetricsSchema = z.object({
+  inputTokens: z.number(),
+  outputTokens: z.number(),
+  latencyMs: z.number(),
+  schemaValidated: z.boolean(),
+});
+
 const UserInsightSchema = z.object({
   message: z.string(),
   action: ActionSchema,
@@ -33,9 +40,11 @@ const UserInsightSchema = z.object({
   speakingStyle: SpeakingStyleSchema.optional(),
   topTopics: z.array(TopTopicSchema).optional(),
   summary: z.string().optional(),
+  metrics: MetricsSchema.optional(),
 });
 
 type UserInsight = z.infer<typeof UserInsightSchema>;
+type Metrics = z.infer<typeof MetricsSchema>;
 
-export { UserInsightSchema };
-export type { UserInsight };
+export { UserInsightSchema, MetricsSchema };
+export type { UserInsight, Metrics };

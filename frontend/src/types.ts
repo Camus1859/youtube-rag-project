@@ -1,3 +1,10 @@
+export interface Metrics {
+  inputTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+  schemaValidated: boolean;
+}
+
 export interface UserInsight {
   message: string;
   action: "ask_clarification" | "provide_analysis" | "need_more_data";
@@ -21,6 +28,7 @@ export interface UserInsight {
     frequency: string;
   }[];
   summary?: string;
+  metrics?: Metrics;
 }
 
 export interface Message {
