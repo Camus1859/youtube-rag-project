@@ -2,6 +2,15 @@ import type { Handler } from "@netlify/functions";
 import { askQuestion } from "../../src/services/queryVector.js";
 import type { Message } from "../../src/services/queryVector.js";
 
+const securityHeaders = {
+  "Content-Type": "application/json",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "X-XSS-Protection": "1; mode=block",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
+};
+
 function sanitizeInput(input: string): string {
   const patterns = [
     /ignore (all )?(previous|prior|above) (instructions|prompts)/gi,
@@ -22,7 +31,7 @@ function sanitizeInput(input: string): string {
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+    return { statusCode: 405, headers: securityHeaders, body: "Method Not Allowed" };
   }
 
   try {
@@ -31,6 +40,7 @@ const handler: Handler = async (event) => {
     if (!channelInput || !question) {
       return {
         statusCode: 400,
+        headers: securityHeaders,
         body: JSON.stringify({ error: "channelInput and question are required" }),
       };
     }
@@ -38,6 +48,7 @@ const handler: Handler = async (event) => {
     if (typeof channelInput !== "string" || typeof question !== "string") {
       return {
         statusCode: 400,
+        headers: securityHeaders,
         body: JSON.stringify({ error: "channelInput and question must be strings" }),
       };
     }
@@ -47,13 +58,14 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: securityHeaders,
       body: JSON.stringify(result),
     };
   } catch (error) {
     console.error("Ask error:", error);
     return {
       statusCode: 500,
+      headers: securityHeaders,
       body: JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
     };
   }
