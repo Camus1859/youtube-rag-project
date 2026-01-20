@@ -175,9 +175,9 @@ function App() {
   if (view === 'input') {
     return (
       <div className="container">
-        <h1>YouTube {ragTooltip} Analyzer</h1>
-        <p className="subtitle">Ask questions answered by their actual video transcripts</p>
-        <p className="subtitle-note">Unlike ChatGPT, responses come from what they've actually said, not general knowledge.</p>
+        <h1>Learn From Creators</h1>
+        <p className="subtitle">AI-powered transcript analysis for deeper understanding</p>
+        <p className="subtitle-note">Powered by {ragTooltip} — responses come from what creators have actually said, not general knowledge.</p>
         <div className="instructions">
           <p><strong>How to get the channel URL:</strong></p>
           <ol>
@@ -205,7 +205,8 @@ function App() {
     const currentStep = loadingSteps[loadingStep]
     return (
       <div className="container">
-        <h1>YouTube {ragTooltip} Analyzer</h1>
+        <h1>Learn From Creators</h1>
+        <p className="subtitle-note" style={{ marginBottom: '1.5rem' }}>Powered by {ragTooltip}</p>
         <div className="loading">
           <div className="spinner"></div>
           <div className="loading-steps">
@@ -228,7 +229,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>YouTube {ragTooltip} Analyzer</h1>
+      <h1>Learn From Creators</h1>
       <div className="chat-header">
         <p className="chat-title">Analyzing: {channelInput}</p>
         <button className="new-btn" onClick={handleNew}>New</button>
@@ -245,6 +246,19 @@ function App() {
                     {option}
                   </button>
                 ))}
+              </div>
+            )}
+            {msg.role === 'assistant' && msg.insight?.metrics && (
+              <div className="metrics">
+                <span className="metric">
+                  <span className="metric-label">Tokens:</span> {msg.insight.metrics.inputTokens} in / {msg.insight.metrics.outputTokens} out
+                </span>
+                <span className="metric">
+                  <span className="metric-label">Latency:</span> {(msg.insight.metrics.latencyMs / 1000).toFixed(2)}s
+                </span>
+                <span className={`metric validation ${msg.insight.metrics.schemaValidated ? 'valid' : 'invalid'}`}>
+                  {msg.insight.metrics.schemaValidated ? '✓ Schema Valid' : '✗ Schema Failed'}
+                </span>
               </div>
             )}
           </div>
