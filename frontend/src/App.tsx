@@ -66,13 +66,13 @@ function App() {
         body: JSON.stringify({ channelInput: cleanedUrl }),
       })
 
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Ingest failed')
+      const { success: ingestSuccess, data: ingestData, error: ingestError, meta: ingestMeta } = await res.json()
+
+      if (!ingestSuccess) {
+        throw new Error(ingestError?.message || 'Ingest failed')
       }
 
-      const ingestResponse = await res.json();
-      localStorage.setItem(namespaceString, 'true');
+      localStorage.setItem(namespaceString, 'true')
 
       const askRes = await fetch('/.netlify/functions/ask', {
         method: 'POST',
@@ -84,15 +84,16 @@ function App() {
         }),
       })
 
-      if (!askRes.ok) {
-        const err = await askRes.json()
-        throw new Error(err.error || 'Ask failed')
+      const { success: askSuccess, data: askData, error: askError, meta: askMeta } = await askRes.json()
+
+      if (!askSuccess) {
+        throw new Error(askError?.message || 'Ask failed')
       }
 
-      const insight: UserInsight = await askRes.json()
+      const insight: UserInsight = askData
 
       const elapsed = Date.now() - startTime
-      if (elapsed < minLoadTime && ingestResponse.nameSpaceExist !== true) {
+      if (elapsed < minLoadTime && ingestData.nameSpaceExist !== true) {
         await new Promise(resolve => setTimeout(resolve, minLoadTime - elapsed))
       }
 
@@ -133,12 +134,13 @@ function App() {
         }),
       })
 
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Ask failed')
+      const { success, data, error, meta } = await res.json()
+
+      if (!success) {
+        throw new Error(error?.message || 'Ask failed')
       }
 
-      const insight: UserInsight = await res.json()
+      const insight: UserInsight = data
 
       setMessages(prev => [...prev, {
         role: 'assistant',
