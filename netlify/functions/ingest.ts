@@ -2,6 +2,9 @@ import type { Handler } from "@netlify/functions";
 import { upsertChunks } from "../../src/services/upsertVectors.js";
 import { getNamespaceFromInput } from "../../src/utils/urlParser.js";
 import { pcIndex } from "../../src/services/pinecone.js";
+import { successResponse } from "../../src/schemas/api.Response.js";
+import {errorResponse} from "../../src/schemas/api.Response.js";
+import crypto from "crypto";
 
 const securityHeaders = {
   "Content-Type": "application/json",
@@ -23,11 +26,19 @@ function cleanYouTubeUrl(input: string): string {
 }
 
 const handler: Handler = async (event) => {
-  if (event.httpMethod !== "POST") {
+  const uniqueRequestId =  crypto.randomUUID();
+
+  if (event.httpMethod !== "POST") {    
     return {
       statusCode: 405,
       headers: securityHeaders,
-      body: "Method Not Allowed",
+      body: JSON.stringify(
+        errorResponse(
+          "METHOD_NOT_ALLOWED",
+          "Only POST method is allowed",
+          uniqueRequestId,
+        ),
+      ),
     };
   }
 
@@ -38,7 +49,13 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: securityHeaders,
-        body: JSON.stringify({ error: "channelInput is required" }),
+        body: JSON.stringify(
+          errorResponse(
+            "MISSING_PARAMETERS",
+            "channelInput is required",
+            uniqueRequestId,
+          ),
+        ),
       };
     }
 
@@ -46,10 +63,13 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: securityHeaders,
-        body: JSON.stringify({
-          error:
-            "Please enter a valid YouTube channel URL (e.g., https://www.youtube.com/@ChannelName)",
-        }),
+        body: JSON.stringify(
+          errorResponse(
+            "INVALID_INPUT",
+            "channelInput must be a valid YouTube channel URL",
+            uniqueRequestId,
+          ),
+        ),
       };
     }
 
@@ -66,7 +86,12 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: securityHeaders,
-        body: JSON.stringify({ success: true, nameSpaceExist: true }),
+        body: JSON.stringify(
+          successResponse(
+            { nameSpaceExist: true },
+            uniqueRequestId,
+          )
+        )
       };
     } else {
       await upsertChunks(cleanedUrl);
@@ -74,7 +99,12 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         headers: securityHeaders,
-        body: JSON.stringify({ success: true }),
+        body: JSON.stringify(
+          successResponse(
+            { nameSpaceExist: false },
+            uniqueRequestId,
+          )
+        ),
       };
     }
   } catch (error) {
@@ -82,9 +112,13 @@ const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers: securityHeaders,
-      body: JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error",
-      }),
+      body: JSON.stringify(
+        errorResponse(
+          "INTERNAL_SERVER_ERROR",
+          "An unexpected error occurred",
+          uniqueRequestId,
+        )
+      ),
     };
   }
 };
