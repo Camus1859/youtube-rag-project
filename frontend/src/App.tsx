@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import type { UserInsight, Message } from './types'
+import { getNamespaceFromInput } from '../../src/utils/urlParser'
 
 type View = 'input' | 'loading' | 'chat'
 
@@ -51,7 +52,8 @@ function App() {
     }
 
     const cleanedUrl = cleanYouTubeUrl(channelInput.trim())
-    setChannelInput(cleanedUrl) 
+    const namespaceString = getNamespaceFromInput(cleanedUrl)
+    setChannelInput(cleanedUrl)
     setView('loading')
 
     const minLoadTime = 10000 
@@ -68,6 +70,9 @@ function App() {
         const err = await res.json()
         throw new Error(err.error || 'Ingest failed')
       }
+
+      const ingestResponse = await res.json();
+      localStorage.setItem(namespaceString, 'true');
 
       const askRes = await fetch('/.netlify/functions/ask', {
         method: 'POST',
@@ -87,7 +92,7 @@ function App() {
       const insight: UserInsight = await askRes.json()
 
       const elapsed = Date.now() - startTime
-      if (elapsed < minLoadTime) {
+      if (elapsed < minLoadTime && ingestResponse.nameSpaceExist !== true) {
         await new Promise(resolve => setTimeout(resolve, minLoadTime - elapsed))
       }
 
@@ -172,6 +177,10 @@ function App() {
     </span>
   )
 
+
+  const namespaceString = getNamespaceFromInput(channelInput);
+  const doesNamespaceExistInLocalStorage = localStorage.getItem(namespaceString);
+
   if (view === 'input') {
     return (
       <div className="container">
@@ -201,7 +210,7 @@ function App() {
     )
   }
 
-  if (view === 'loading') {
+  if (view === 'loading' && doesNamespaceExistInLocalStorage !== "true") {
     const currentStep = loadingSteps[loadingStep]
     return (
       <div className="container">
@@ -222,6 +231,18 @@ function App() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (view === 'loading' && doesNamespaceExistInLocalStorage === "true") {
+    return (
+      <div className="container">
+        <h1>Learn From Creators</h1>
+        <p className="subtitle-note" style={{ marginBottom: '1.5rem' }}>Powered by {ragTooltip}</p>
+        <div className="loading">
+          <div className="spinner"></div>
         </div>
       </div>
     )

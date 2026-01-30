@@ -1,5 +1,7 @@
 import type { Handler } from "@netlify/functions";
 import { upsertChunks } from "../../src/services/upsertVectors.js";
+import { getNamespaceFromInput } from "../../src/utils/urlParser.js";
+import { pcIndex } from "../../src/services/pinecone.js";
 
 const securityHeaders = {
   "Content-Type": "application/json",
@@ -52,13 +54,29 @@ const handler: Handler = async (event) => {
     }
 
     const cleanedUrl = cleanYouTubeUrl(channelInput);
-    await upsertChunks(cleanedUrl);
 
-    return {
-      statusCode: 200,
-      headers: securityHeaders,
-      body: JSON.stringify({ success: true }),
-    };
+    const data = await pcIndex.listNamespaces();
+
+    const youtubersName = getNamespaceFromInput(cleanedUrl);
+    const nameSpaceExist = data.namespaces?.some(
+      (namespace) => namespace.name === youtubersName,
+    );
+
+    if (nameSpaceExist) {
+      return {
+        statusCode: 200,
+        headers: securityHeaders,
+        body: JSON.stringify({ success: true, nameSpaceExist: true }),
+      };
+    } else {
+      await upsertChunks(cleanedUrl);
+
+      return {
+        statusCode: 200,
+        headers: securityHeaders,
+        body: JSON.stringify({ success: true }),
+      };
+    }
   } catch (error) {
     console.error("Ingest error:", error);
     return {
