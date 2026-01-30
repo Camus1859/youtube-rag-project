@@ -1,6 +1,9 @@
 import type { Handler } from "@netlify/functions";
 import { askQuestion } from "../../src/services/queryVector.js";
 import type { Message } from "../../src/services/queryVector.js";
+import { successResponse } from "../../src/schemas/api.Response.js";
+import { errorResponse } from "../../src/schemas/api.Response.js";
+import crypto from "crypto";
 
 const securityHeaders = {
   "Content-Type": "application/json",
@@ -30,18 +33,40 @@ function sanitizeInput(input: string): string {
 }
 
 const handler: Handler = async (event) => {
+  const uniqueRequestId = crypto.randomUUID();
+
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers: securityHeaders, body: "Method Not Allowed" };
+    return {
+      statusCode: 405,
+      headers: securityHeaders,
+      body: JSON.stringify(
+        errorResponse(
+          "METHOD_NOT_ALLOWED",
+          "Only POST method is allowed",
+          uniqueRequestId,
+        ),
+      ),
+    };
   }
 
   try {
-    const { channelInput, question, history = [] } = JSON.parse(event.body || "{}");
+    const {
+      channelInput,
+      question,
+      history = [],
+    } = JSON.parse(event.body || "{}");
 
     if (!channelInput || !question) {
       return {
         statusCode: 400,
         headers: securityHeaders,
-        body: JSON.stringify({ error: "channelInput and question are required" }),
+        body: JSON.stringify(
+          errorResponse(
+            "MISSING_PARAMETERS",
+            "channelInput and question are required",
+            uniqueRequestId,
+          ),
+        ),
       };
     }
 
@@ -49,24 +74,40 @@ const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: securityHeaders,
-        body: JSON.stringify({ error: "channelInput and question must be strings" }),
+        body: JSON.stringify(
+          errorResponse(
+            "INVALID_PARAMETERS",
+            "channelInput and question must be strings",
+            uniqueRequestId,
+          ),
+        ),
       };
     }
 
     const sanitizedQuestion = sanitizeInput(question);
-    const result = await askQuestion(channelInput, sanitizedQuestion, history as Message[]);
+    const result = await askQuestion(
+      channelInput,
+      sanitizedQuestion,
+      history as Message[],
+    );
 
     return {
       statusCode: 200,
       headers: securityHeaders,
-      body: JSON.stringify(result),
+      body: JSON.stringify(successResponse(result, uniqueRequestId)),
     };
   } catch (error) {
     console.error("Ask error:", error);
     return {
       statusCode: 500,
       headers: securityHeaders,
-      body: JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      body: JSON.stringify(
+        errorResponse(
+          "INTERNAL_SERVER_ERROR",
+          "An unexpected error occurred",
+          uniqueRequestId,
+        ),
+      ),
     };
   }
 };
