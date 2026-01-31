@@ -4,6 +4,7 @@ import { getNamespaceFromInput } from "../../src/utils/urlParser.js";
 import { pcIndex } from "../../src/services/pinecone.js";
 import { successResponse } from "../../src/schemas/api.Response.js";
 import {errorResponse} from "../../src/schemas/api.Response.js";
+import { checkRateLimit } from "../../src/utils/rateLimit.js";
 import crypto from "crypto";
 
 const securityHeaders = {
@@ -36,6 +37,28 @@ const handler: Handler = async (event) => {
         errorResponse(
           "METHOD_NOT_ALLOWED",
           "Only POST method is allowed",
+          uniqueRequestId,
+        ),
+      ),
+    };
+  }
+
+  const clientIp = event.headers["x-forwarded-for"]?.split(",")[0] || "unknown";
+  const rateLimit = await checkRateLimit(clientIp, 10, 60);
+
+  if (!rateLimit.isAllowed) {
+    return {
+      statusCode: 429,
+      headers: {
+        ...securityHeaders,
+        "X-RateLimit-Limit": "10",
+        "X-RateLimit-Remaining": "0",
+        "Retry-After": String(rateLimit.resetTime - Math.floor(Date.now() / 1000)),
+      },
+      body: JSON.stringify(
+        errorResponse(
+          "RATE_LIMIT_EXCEEDED",
+          "Too many requests. Please try again later.",
           uniqueRequestId,
         ),
       ),
