@@ -6,6 +6,7 @@ import { getNamespaceFromInput } from "../utils/urlParser.js";
 import { truncateHistory, type Message } from "../utils/textProcessing.js";
 import { UserInsightSchema } from "../schemas/userInsight.js";
 import type { UserInsight } from "../schemas/userInsight.js";
+import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 
 const SYSTEM_PROMPT = `You are an AI assistant analyzing a YouTube creator based on their video transcripts.
 Respond ONLY with valid JSON matching this exact structure (no markdown, no explanation outside the JSON):
@@ -56,12 +57,11 @@ const askQuestion = async (
   const namespace = getNamespaceFromInput(input);
   const vector = await textToVector(question);
 
-  const response = await pcIndex.namespace(namespace).query({
+  const response = await withRetry(() => pcIndex.namespace(namespace).query({
     vector,
     topK: 5,
     includeMetadata: true,
-  });
-
+  }), 2, 500, shouldRetryOnNetworkError);
   const chunks = response.matches.map((m) => m.metadata?.text);
   const prompt = `Here is some context from the creator's transcripts:\n${chunks.join("\n\n")}\n\nQuestion: ${question}`;
 
@@ -71,7 +71,7 @@ const askQuestion = async (
     { role: "user", content: prompt },
   ];
 
-  const claudeResponse = await sendMessageToClaude(messages, SYSTEM_PROMPT);
+  const claudeResponse = await withRetry(() => sendMessageToClaude(messages, SYSTEM_PROMPT), 2, 500, shouldRetryOnNetworkError );
   const latencyMs = Date.now() - startTime;
 
   const rawText = claudeResponse.content[0]?.text ?? "";
