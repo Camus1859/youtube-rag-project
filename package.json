@@ -23,6 +23,7 @@
     "@pinecone-database/pinecone": "^6.1.3",
     "@types/node": "^25.0.9",
     "@types/node-fetch": "^2.6.13",
+    "@upstash/redis": "^1.36.1",
     "dotenv": "^17.2.3",
     "googleapis": "^170.1.0",
     "https-proxy-agent": "^7.0.6",
