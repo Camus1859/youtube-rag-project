@@ -2,6 +2,7 @@ import { pcIndex } from "./pinecone.js";
 import { textsToVectors } from "./embeddings.js";
 import { fireItUp } from "./youtube.js";
 import { getNamespaceFromInput } from "../utils/urlParser.js";
+import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 
 const BATCH_SIZE = 50;
 
@@ -24,7 +25,7 @@ const upsertChunks = async (input: string) => {
 
   for (let i = 0; i < records.length; i += BATCH_SIZE) {
     const batch = records.slice(i, i + BATCH_SIZE);
-    await pcIndex.namespace(namespace).upsert(batch);
+    await withRetry(() => pcIndex.namespace(namespace).upsert(batch), 2, 500, shouldRetryOnNetworkError );
   }
 
 };
