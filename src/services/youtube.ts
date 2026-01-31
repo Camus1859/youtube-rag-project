@@ -7,6 +7,7 @@ import {
   extractChannelIdFromUrl,
 } from "../utils/urlParser.js";
 import { chunkText } from "../utils/textProcessing.js";
+import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 
 const apiKey = process.env.YOUTUBE_API_KEY;
 if (!apiKey) throw new Error("YOUTUBE_API_KEY is not defined");
@@ -66,7 +67,7 @@ const getYoutuberId = async (input: string): Promise<string> => {
   const endpoint = `https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${encodeURIComponent(handle)}&key=${apiKey}`;
 
   try {
-    const res = await fetch(endpoint);
+    const res = await withRetry(() => fetch(endpoint), 2, 500, shouldRetryOnNetworkError);
     if (!res.ok) throw new Error("Failed to fetch YouTube channel ID");
     const data = await res.json();
 
@@ -89,7 +90,7 @@ const getVideoIds = async (
   const endpoint = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=${maxResults}&key=${apiKey}`;
 
   try {
-    const res = await fetch(endpoint);
+    const res = await withRetry(()=> fetch(endpoint), 2, 500, shouldRetryOnNetworkError);
     if (!res.ok) throw new Error("Failed to fetch playlist items");
     const data = await res.json();
     return data.items.map((item: any) => item.snippet.resourceId.videoId);
@@ -106,7 +107,7 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
     try {
       // Use proxied fetch for transcript requests (YouTube blocks cloud IPs)
       const transcript = await withProxiedFetch(() =>
-        YoutubeTranscript.fetchTranscript(videoId),
+        withRetry(() => YoutubeTranscript.fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError)
       );
       const fullTranscript = transcript.map((entry) => entry.text).join(" ");
       transcripts.push(fullTranscript);
