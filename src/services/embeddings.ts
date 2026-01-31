@@ -1,14 +1,16 @@
 import OpenAI from "openai";
 import "dotenv/config";
+import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
+
 
 const openai = new OpenAI();
 
 const textToVector = async (text: string): Promise<number[]> => {
-  const response = await openai.embeddings.create({
+  const response = await  withRetry(() => openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
     encoding_format: "float",
-  });
+  }), 2, 500, shouldRetryOnNetworkError);
 
   if (response.data.length === 0) {
     throw new Error("No embedding returned from OpenAI");
@@ -35,11 +37,12 @@ const textsToVectors = async (texts: string[]): Promise<number[][]> => {
 
   for (let i = 0; i < validTexts.length; i += BATCH_SIZE) {
     const batch = validTexts.slice(i, i + BATCH_SIZE);
-    const response = await openai.embeddings.create({
+    const response = await withRetry(() => openai.embeddings.create({
       model: "text-embedding-3-small",
       input: batch,
       encoding_format: "float",
-    });
+    }), 2, 500, shouldRetryOnNetworkError);
+    
     allEmbeddings.push(...response.data.map((item) => item.embedding));
   }
 
