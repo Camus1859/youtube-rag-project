@@ -1,6 +1,6 @@
 import { redis } from './redis.js'
 
-const TTL_SECONDS = 30
+const TTL_SECONDS = 120
 
 export async function checkIdempotencyKey(key: string): Promise<string | null> {
   const value = await redis.get(`idempotency:${key}`)
