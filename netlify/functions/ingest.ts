@@ -5,6 +5,7 @@ import { pcIndex } from "../../src/services/pinecone.js";
 import { successResponse } from "../../src/schemas/api.Response.js";
 import {errorResponse} from "../../src/schemas/api.Response.js";
 import { checkRateLimit } from "../../src/utils/rateLimit.js";
+import { checkIdempotencyKey, setProcessing } from "../../src/utils/idempotency.js";
 import crypto from "crypto";
 
 const securityHeaders = {
@@ -63,6 +64,25 @@ const handler: Handler = async (event) => {
         ),
       ),
     };
+  }
+
+  const idempotencyKey = event.headers["idempotency-key"];
+  if (idempotencyKey) {
+    const existing = await checkIdempotencyKey(idempotencyKey);
+    if (existing === "PROCESSING") {
+      return {
+        statusCode: 409,
+        headers: securityHeaders,
+        body: JSON.stringify(
+          errorResponse(
+            "REQUEST_IN_PROGRESS",
+            "Request already being processed",
+            uniqueRequestId,
+          ),
+        ),
+      };
+    }
+    await setProcessing(idempotencyKey);
   }
 
   try {
