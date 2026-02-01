@@ -12,6 +12,7 @@ function App() {
   const [inputValue, setInputValue] = useState('')
   const [isThinking, setIsThinking] = useState(false)
   const [loadingStep, setLoadingStep] = useState(0)
+  const [idempotencyKey, setIdempotencyKey] = useState('')
 
   const loadingSteps = [
     { step: 1, title: 'Fetching video IDs', detail: 'Querying YouTube Data API for 5 most recent uploads' },
@@ -56,13 +57,19 @@ function App() {
     setChannelInput(cleanedUrl)
     setView('loading')
 
-    const minLoadTime = 10000 
+    const key = idempotencyKey || crypto.randomUUID()
+    if (!idempotencyKey) setIdempotencyKey(key)
+
+    const minLoadTime = 10000
     const startTime = Date.now()
 
     try {
       const res = await fetch('/.netlify/functions/ingest', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': key,
+        },
         body: JSON.stringify({ channelInput: cleanedUrl }),
       })
 
@@ -103,6 +110,7 @@ function App() {
         insight,
       }])
       setView('chat')
+      setIdempotencyKey('')
     } catch (error) {
       console.error('Error:', error)
       alert(error instanceof Error ? error.message : 'Something went wrong')
