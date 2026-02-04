@@ -2,23 +2,39 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import type { UserInsight, Message } from './types'
 import { getNamespaceFromInput } from '../../src/utils/urlParser'
+import InputScreen from './InputScreen'
+import LoadingScreen from './LoadingScreen'
+import ChatScreen from './ChatScreen'
 
 type View = 'input' | 'loading' | 'chat'
 
 function App() {
   const [view, setView] = useState<View>('input')
-  const [channelInput, setChannelInput] = useState('')
+  const [channelInput, setChannelInput] = useState<string>('')
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; insight?: UserInsight }[]>([])
-  const [inputValue, setInputValue] = useState('')
-  const [isThinking, setIsThinking] = useState(false)
-  const [loadingStep, setLoadingStep] = useState(0)
+  const [inputValue, setInputValue] = useState<string>('')
+  const [isThinking, setIsThinking] = useState<boolean>(false)
+  const [loadingStep, setLoadingStep] = useState<number>(0)
   const [idempotencyKey, setIdempotencyKey] = useState('')
 
-  const loadingSteps = [
+  type LoadingSteps = {
+    step: number
+    title: string
+    detail: string
+  }
+  const loadingSteps: LoadingSteps[] = [
     { step: 1, title: 'Fetching video IDs', detail: 'Querying YouTube Data API for 5 most recent uploads' },
-    { step: 2, title: 'Extracting transcripts', detail: 'Downloading auto-generated captions via youtube-transcript API' },
+    {
+      step: 2,
+      title: 'Extracting transcripts',
+      detail: 'Downloading auto-generated captions via youtube-transcript API',
+    },
     { step: 3, title: 'Chunking text', detail: 'Splitting transcripts into 500-char segments with 100-char overlap' },
-    { step: 4, title: 'Generating embeddings', detail: 'Converting chunks to vectors using OpenAI text-embedding-3-small' },
+    {
+      step: 4,
+      title: 'Generating embeddings',
+      detail: 'Converting chunks to vectors using OpenAI text-embedding-3-small',
+    },
     { step: 5, title: 'Storing in vector DB', detail: 'Upserting embeddings to Pinecone with channel namespace' },
     { step: 6, title: 'Initializing chat', detail: 'Running initial RAG query against stored vectors' },
   ]
@@ -86,7 +102,8 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           channelInput: cleanedUrl,
-          question: 'Introduce yourself briefly and ask what the user would like to know about this creator. Suggest some specific topics based on the transcript content.',
+          question:
+            'Introduce yourself briefly and ask what the user would like to know about this creator. Suggest some specific topics based on the transcript content.',
           history: [],
         }),
       })
@@ -104,11 +121,13 @@ function App() {
         await new Promise(resolve => setTimeout(resolve, minLoadTime - elapsed))
       }
 
-      setMessages([{
-        role: 'assistant',
-        content: insight.message,
-        insight,
-      }])
+      setMessages([
+        {
+          role: 'assistant',
+          content: insight.message,
+          insight,
+        },
+      ])
       setView('chat')
       setIdempotencyKey('')
     } catch (error) {
@@ -150,17 +169,23 @@ function App() {
 
       const insight: UserInsight = data
 
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: insight.message,
-        insight,
-      }])
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: insight.message,
+          insight,
+        },
+      ])
     } catch (error) {
       console.error('Error:', error)
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, something went wrong. Please try again.',
-      }])
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Sorry, something went wrong. Please try again.',
+        },
+      ])
     } finally {
       setIsThinking(false)
     }
@@ -181,138 +206,57 @@ function App() {
     <span className="rag-tooltip">
       RAG
       <span className="tooltip-text">
-        <strong>Retrieval Augmented Generation</strong> combines LLMs with external knowledge retrieval. Instead of relying only on training data, it fetches relevant content and uses it as context to generate accurate responses.
-        <a href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation#RAG_and_LLM_limitations" target="_blank" rel="noopener noreferrer" className="tooltip-link">Learn more</a>
+        <strong>Retrieval Augmented Generation</strong> combines LLMs with external knowledge retrieval. Instead of
+        relying only on training data, it fetches relevant content and uses it as context to generate accurate
+        responses.
+        <a
+          href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation#RAG_and_LLM_limitations"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="tooltip-link"
+        >
+          Learn more
+        </a>
       </span>
     </span>
   )
 
-
-  const namespaceString = getNamespaceFromInput(channelInput);
-  const doesNamespaceExistInLocalStorage = localStorage.getItem(namespaceString);
+  const namespaceString = getNamespaceFromInput(channelInput)
+  const doesNamespaceExistInLocalStorage = localStorage.getItem(namespaceString)
 
   if (view === 'input') {
     return (
-      <div className="container">
-        <h1>Learn From Creators</h1>
-        <p className="subtitle">AI-powered transcript analysis for deeper understanding</p>
-        <p className="subtitle-note">Powered by {ragTooltip} — responses come from what creators have actually said, not general knowledge.</p>
-        <div className="instructions">
-          <p><strong>How to get the channel URL:</strong></p>
-          <ol>
-            <li>Go to <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">youtube.com</a></li>
-            <li>Find your favorite YouTuber's channel</li>
-            <li>Click the <strong>Home</strong> button on their page</li>
-            <li>Copy the URL (it should look like: https://www.youtube.com/@ChannelName)</li>
-          </ol>
-        </div>
-        <div className="input-row">
-          <input
-            type="text"
-            placeholder="e.g., https://www.youtube.com/@Fireship"
-            value={channelInput}
-            onChange={(e) => setChannelInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-          />
-          <button onClick={handleAnalyze}>Analyze</button>
-        </div>
-      </div>
+      <InputScreen
+        setChannelInput={setChannelInput}
+        handleAnalyze={handleAnalyze}
+        ragTooltip={ragTooltip}
+        channelInput={channelInput}
+      />
     )
   }
 
-  if (view === 'loading' && doesNamespaceExistInLocalStorage !== "true") {
-    const currentStep = loadingSteps[loadingStep]
+  if (view === 'loading') {
     return (
-      <div className="container">
-        <h1>Learn From Creators</h1>
-        <p className="subtitle-note" style={{ marginBottom: '1.5rem' }}>Powered by {ragTooltip}</p>
-        <div className="loading">
-          <div className="spinner"></div>
-          <div className="loading-steps">
-            {loadingSteps.map((s, i) => (
-              <div key={s.step} className={`loading-step ${i < loadingStep ? 'completed' : i === loadingStep ? 'active' : 'pending'}`}>
-                <div className="step-indicator">
-                  {i < loadingStep ? '✓' : s.step}
-                </div>
-                <div className="step-content">
-                  <p className="step-title">{s.title}</p>
-                  {i === loadingStep && <p className="step-detail">{currentStep.detail}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (view === 'loading' && doesNamespaceExistInLocalStorage === "true") {
-    return (
-      <div className="container">
-        <h1>Learn From Creators</h1>
-        <p className="subtitle-note" style={{ marginBottom: '1.5rem' }}>Powered by {ragTooltip}</p>
-        <div className="loading">
-          <div className="spinner"></div>
-        </div>
-      </div>
+      <LoadingScreen
+        doesNamespaceExistInLocalStorage={doesNamespaceExistInLocalStorage}
+        loadingSteps={loadingSteps}
+        loadingStep={loadingStep}
+        ragTooltip={ragTooltip}
+      />
     )
   }
 
   return (
-    <div className="container">
-      <h1>Learn From Creators</h1>
-      <div className="chat-header">
-        <p className="chat-title">Analyzing: {channelInput}</p>
-        <button className="new-btn" onClick={handleNew}>New</button>
-      </div>
-
-      <div className="chat-messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={`message ${msg.role}`}>
-            <p>{msg.content}</p>
-            {msg.role === 'assistant' && msg.insight?.followUpOptions && (
-              <div className="follow-ups">
-                {msg.insight.followUpOptions.map((option, j) => (
-                  <button key={j} onClick={() => handleFollowUp(option)}>
-                    {option}
-                  </button>
-                ))}
-              </div>
-            )}
-            {msg.role === 'assistant' && msg.insight?.metrics && (
-              <div className="metrics">
-                <span className="metric">
-                  <span className="metric-label">Tokens:</span> {msg.insight.metrics.inputTokens} in / {msg.insight.metrics.outputTokens} out
-                </span>
-                <span className="metric">
-                  <span className="metric-label">Latency:</span> {(msg.insight.metrics.latencyMs / 1000).toFixed(2)}s
-                </span>
-                <span className={`metric validation ${msg.insight.metrics.schemaValidated ? 'valid' : 'invalid'}`}>
-                  {msg.insight.metrics.schemaValidated ? '✓ Schema Valid' : '✗ Schema Failed'}
-                </span>
-              </div>
-            )}
-          </div>
-        ))}
-        {isThinking && (
-          <div className="message assistant">
-            <p className="thinking">Thinking...</p>
-          </div>
-        )}
-      </div>
-
-      <div className="input-row">
-        <input
-          type="text"
-          placeholder="Ask a question..."
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          disabled={isThinking}
-        />
-        <button onClick={handleSend} disabled={isThinking}>Send</button>
-      </div>
-    </div>
+    <ChatScreen
+      channelInput={channelInput}
+      handleNew={handleNew}
+      messages={messages}
+      handleFollowUp={handleFollowUp}
+      isThinking={isThinking}
+      inputValue={inputValue}
+      setInputValue={setInputValue}
+      handleSend={handleSend}
+    />
   )
 }
 
