@@ -16,7 +16,7 @@ function App() {
   const [inputValue, setInputValue] = useState<string>('')
   const [isThinking, setIsThinking] = useState<boolean>(false)
   const [loadingStep, setLoadingStep] = useState<number>(0)
-  const [idempotencyKey, setIdempotencyKey] = useState('')
+  const [idempotencyKey, setIdempotencyKey] = useState<string>('')
 
   useEffect(() => {
     if (view !== 'loading') {
