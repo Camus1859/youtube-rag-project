@@ -76,7 +76,7 @@ const handler: Handler = async (event) => {
         body: JSON.stringify(
           errorResponse(
             "REQUEST_IN_PROGRESS",
-            "Request already being processed",
+            "Request already being processed, give it a minute and try again.",
             uniqueRequestId,
           ),
         ),
