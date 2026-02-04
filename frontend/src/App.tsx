@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import type { UserInsight, Message } from './types'
+import type { UserInsight, Message, View } from './types'
 import { getNamespaceFromInput } from '../../src/utils/urlParser'
 import InputScreen from './InputScreen'
 import LoadingScreen from './LoadingScreen'
 import ChatScreen from './ChatScreen'
-
-type View = 'input' | 'loading' | 'chat'
+import loadingSteps from './LoadingSteps'
+import { isValidYouTubeUrl, cleanYouTubeUrl } from '../../src/utils/urlValidation'
+import RagTooltip from './RagToolTip'
 
 function App() {
   const [view, setView] = useState<View>('input')
@@ -17,28 +18,6 @@ function App() {
   const [loadingStep, setLoadingStep] = useState<number>(0)
   const [idempotencyKey, setIdempotencyKey] = useState('')
 
-  type LoadingSteps = {
-    step: number
-    title: string
-    detail: string
-  }
-  const loadingSteps: LoadingSteps[] = [
-    { step: 1, title: 'Fetching video IDs', detail: 'Querying YouTube Data API for 5 most recent uploads' },
-    {
-      step: 2,
-      title: 'Extracting transcripts',
-      detail: 'Downloading auto-generated captions via youtube-transcript API',
-    },
-    { step: 3, title: 'Chunking text', detail: 'Splitting transcripts into 500-char segments with 100-char overlap' },
-    {
-      step: 4,
-      title: 'Generating embeddings',
-      detail: 'Converting chunks to vectors using OpenAI text-embedding-3-small',
-    },
-    { step: 5, title: 'Storing in vector DB', detail: 'Upserting embeddings to Pinecone with channel namespace' },
-    { step: 6, title: 'Initializing chat', detail: 'Running initial RAG query against stored vectors' },
-  ]
-
   useEffect(() => {
     if (view !== 'loading') {
       setLoadingStep(0)
@@ -48,17 +27,7 @@ function App() {
       setLoadingStep(prev => (prev < loadingSteps.length - 1 ? prev + 1 : prev))
     }, 2500)
     return () => clearInterval(interval)
-  }, [view, loadingSteps.length])
-
-  const isValidYouTubeUrl = (input: string): boolean => {
-    const urlPattern = /^(https?:\/\/)?(www\.)?youtube\.com\/@[\w-]+/i
-    return urlPattern.test(input)
-  }
-
-  const cleanYouTubeUrl = (input: string): string => {
-    const match = input.match(/^(https?:\/\/)?(www\.)?youtube\.com\/@[\w-]+/i)
-    return match ? match[0] : input
-  }
+  }, [view])
 
   const handleAnalyze = async () => {
     if (!channelInput.trim()) return
@@ -202,25 +171,6 @@ function App() {
     setInputValue('')
   }
 
-  const ragTooltip = (
-    <span className="rag-tooltip">
-      RAG
-      <span className="tooltip-text">
-        <strong>Retrieval Augmented Generation</strong> combines LLMs with external knowledge retrieval. Instead of
-        relying only on training data, it fetches relevant content and uses it as context to generate accurate
-        responses.
-        <a
-          href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation#RAG_and_LLM_limitations"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="tooltip-link"
-        >
-          Learn more
-        </a>
-      </span>
-    </span>
-  )
-
   const namespaceString = getNamespaceFromInput(channelInput)
   const doesNamespaceExistInLocalStorage = localStorage.getItem(namespaceString)
 
@@ -229,7 +179,7 @@ function App() {
       <InputScreen
         setChannelInput={setChannelInput}
         handleAnalyze={handleAnalyze}
-        ragTooltip={ragTooltip}
+        ragTooltip={RagTooltip}
         channelInput={channelInput}
       />
     )
@@ -241,7 +191,7 @@ function App() {
         doesNamespaceExistInLocalStorage={doesNamespaceExistInLocalStorage}
         loadingSteps={loadingSteps}
         loadingStep={loadingStep}
-        ragTooltip={ragTooltip}
+        ragTooltip={RagTooltip}
       />
     )
   }
