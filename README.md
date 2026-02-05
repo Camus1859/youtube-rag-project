@@ -1,4 +1,4 @@
-# YouTube RAG Analyzer
+# YouTube Content RAG Analyzer
 
 A full-stack [RAG](https://en.wikipedia.org/wiki/Retrieval-augmented_generation)
  application that ingests YouTube channel content and enables conversational Q&A powered by AI.
