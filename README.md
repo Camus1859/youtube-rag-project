@@ -27,21 +27,3 @@ Channel URL → YouTube API (fetch transcripts)
            → User query → RAG retrieval → Claude → Zod validation → Response
 ```
 
-### Run Locally
-
-Requires `.env` file:
-
-```
-YOUTUBE_API_KEY=
-OPENAI_API_KEY=
-PINECONE_API_KEY=
-PINECONE_INDEX=
-ANTHROPIC_API_KEY=
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-```
-
-```bash
-npm install && cd frontend && npm install && cd ..
-netlify dev
-```
