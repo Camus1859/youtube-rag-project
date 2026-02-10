@@ -17,3 +17,12 @@ A full-stack [RAG](https://en.wikipedia.org/wiki/Retrieval-augmented_generation)
 
 React, Vite, TypeScript, Netlify Functions, OpenAI Embeddings API, Pinecone Vector DB, Anthropic Claude, Zod
 
+### Architecture
+
+```
+Channel URL → YouTube API (fetch transcripts)
+           → Chunking (500 chars, 100 overlap)
+           → OpenAI Embeddings API (text-embedding-3-small)
+           → Pinecone (store vectors by channel namespace)
+           → User query → RAG retrieval → Claude → Zod validation → Response
+```
