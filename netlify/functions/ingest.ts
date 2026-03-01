@@ -1,6 +1,7 @@
 import type { Handler } from "@netlify/functions";
 import { upsertChunks } from "../../src/services/upsertVectors.js";
 import { getNamespaceFromInput } from "../../src/utils/urlParser.js";
+import { isValidYouTubeUrl, cleanYouTubeUrl } from "../../src/utils/urlValidation.js";
 import { pcIndex } from "../../src/services/pinecone.js";
 import { successResponse } from "../../src/schemas/api.Response.js";
 import {errorResponse} from "../../src/schemas/api.Response.js";
@@ -17,15 +18,6 @@ const securityHeaders = {
   "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
 };
 
-function isValidYouTubeInput(input: string): boolean {
-  const urlPattern = /^(https?:\/\/)?(www\.)?youtube\.com\/@[\w-]+/i;
-  return urlPattern.test(input);
-}
-
-function cleanYouTubeUrl(input: string): string {
-  const match = input.match(/^(https?:\/\/)?(www\.)?youtube\.com\/@[\w-]+/i);
-  return match ? match[0] : input;
-}
 
 const handler: Handler = async (event) => {
   const uniqueRequestId =  crypto.randomUUID();
@@ -102,7 +94,7 @@ const handler: Handler = async (event) => {
       };
     }
 
-    if (!isValidYouTubeInput(channelInput)) {
+    if (!isValidYouTubeUrl(channelInput)) {
       return {
         statusCode: 400,
         headers: securityHeaders,
