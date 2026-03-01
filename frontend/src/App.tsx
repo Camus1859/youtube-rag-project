@@ -58,7 +58,8 @@ function App() {
         body: JSON.stringify({ channelInput: cleanedUrl }),
       })
 
-      const { success: ingestSuccess, data: ingestData, error: ingestError, meta: ingestMeta } = await res.json()
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+      const { success: ingestSuccess, data: ingestData, error: ingestError } = await res.json()
 
       if (!ingestSuccess) {
         throw new Error(ingestError?.message || 'Ingest failed')
@@ -77,7 +78,8 @@ function App() {
         }),
       })
 
-      const { success: askSuccess, data: askData, error: askError, meta: askMeta } = await askRes.json()
+      if (!askRes.ok) throw new Error(`Server error: ${askRes.status}`)
+      const { success: askSuccess, data: askData, error: askError } = await askRes.json()
 
       if (!askSuccess) {
         throw new Error(askError?.message || 'Ask failed')
@@ -130,7 +132,8 @@ function App() {
         }),
       })
 
-      const { success, data, error, meta } = await res.json()
+      if (!res.ok) throw new Error(`Server error: ${res.status}`)
+      const { success, data, error } = await res.json()
 
       if (!success) {
         throw new Error(error?.message || 'Ask failed')
