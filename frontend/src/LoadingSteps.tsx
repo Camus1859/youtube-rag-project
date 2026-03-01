@@ -11,7 +11,7 @@ const loadingSteps: LoadingSteps[] = [
     title: 'Extracting transcripts',
     detail: 'Downloading auto-generated captions via youtube-transcript API',
   },
-  { step: 3, title: 'Chunking text', detail: 'Splitting transcripts into 500-char segments with 100-char overlap' },
+  { step: 3, title: 'Chunking text', detail: 'Splitting transcripts into 500-word segments with 50-word overlap' },
   {
     step: 4,
     title: 'Generating embeddings',
