@@ -33,7 +33,8 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "youtube-captions-scraper": "^2.0.3",
-    "youtube-transcript": "github:Camus1859/youtube-transcript#fix-captions",
+    "youtube-transcript": "github:Camus1859/youtube-transcript#master",
+    "youtube-transcript-plus": "^1.2.0",
     "youtubei.js": "^16.0.1",
     "zod": "^4.3.5"
   },
