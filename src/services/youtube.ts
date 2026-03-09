@@ -1,4 +1,4 @@
-import { fetchTranscript } from "youtube-transcript-plus";
+import { YoutubeTranscript } from "youtube-transcript-plus";
 import "dotenv/config";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import nodeFetch from "node-fetch";
@@ -12,46 +12,34 @@ import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 const apiKey = process.env.YOUTUBE_API_KEY;
 if (!apiKey) throw new Error("YOUTUBE_API_KEY is not defined");
 
-// Store original fetch at module load time (before any modifications)
-const originalFetch = globalThis.fetch;
-
 // Create proxy agent if PROXY_URL is set
 const proxyAgent = process.env.PROXY_URL
   ? new HttpsProxyAgent(process.env.PROXY_URL)
   : undefined;
 
-// Create a proxied fetch function (doesn't modify global)
-const proxiedFetch = (
-  url: string | URL | Request,
-  init?: Record<string, unknown>,
-) => {
-  return nodeFetch(url.toString(), {
-    ...init,
-    agent: proxyAgent,
+// Create a proxied fetch for youtube-transcript-plus hooks
+const proxiedFetch = async ({ url, lang, userAgent, method, headers, body }: {
+  url: string; lang?: string; userAgent: string;
+  method?: string; headers?: Record<string, string>; body?: string;
+}) => {
+  return nodeFetch(url, {
+    method: method || "GET",
+    headers: {
+      ...(lang && { "Accept-Language": lang }),
+      "User-Agent": userAgent,
+      ...headers,
+    },
+    ...(body && { body }),
+    ...(proxyAgent && { agent: proxyAgent }),
   });
 };
 
-/**
- * Temporarily replaces global fetch with a proxied version,
- * executes the callback, then restores the original fetch.
- * This allows the youtube-transcript library to use the proxy.
- */
-const withProxiedFetch = async <T>(callback: () => Promise<T>): Promise<T> => {
-  if (!proxyAgent) {
-    return callback();
-  }
-
-  // Replace with proxied fetch
-  // @ts-expect-error - TypeScript may complain about modifying globalThis.fetch
-  globalThis.fetch = proxiedFetch;
-
-  try {
-    return await callback();
-  } finally {
-    // Always restore original fetch
-    globalThis.fetch = originalFetch;
-  }
-};
+// Create transcript fetcher with proxy support
+const transcriptClient = new YoutubeTranscript({
+  videoFetch: proxiedFetch,
+  playerFetch: proxiedFetch,
+  transcriptFetch: proxiedFetch,
+});
 
 const getYoutuberId = async (input: string): Promise<string> => {
   const channelIdFromUrl = extractChannelIdFromUrl(input);
@@ -105,7 +93,7 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
   for (const videoId of videoIds) {
     try {
-      const transcript = await withRetry(() => fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError);
+      const transcript = await withRetry(() => transcriptClient.fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError);
       const fullTranscript = transcript.map((entry) => entry.text).join(" ");
       transcripts.push(fullTranscript);
     } catch (e) {
@@ -118,7 +106,7 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
 const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
-  const videoIds = await getVideoIds(channelId, 5);
+  const videoIds = await getVideoIds(channelId, 3);
   const transcripts = await getTranscripts(videoIds);
 
   const allChunks = transcripts.flatMap((t) => chunkText(t));
