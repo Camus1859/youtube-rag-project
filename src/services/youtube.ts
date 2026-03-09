@@ -89,19 +89,21 @@ const getVideoIds = async (
 };
 
 const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
-  const transcripts: string[] = [];
+  const results = await Promise.allSettled(
+    videoIds.map((videoId) =>
+      withRetry(() => transcriptClient.fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError)
+        .then((transcript) => transcript.map((entry) => entry.text).join(" "))
+    )
+  );
 
-  for (const videoId of videoIds) {
-    try {
-      const transcript = await withRetry(() => transcriptClient.fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError);
-      const fullTranscript = transcript.map((entry) => entry.text).join(" ");
-      transcripts.push(fullTranscript);
-    } catch (e) {
-      console.error(`Failed to fetch transcript for ${videoId}:`, e);
-    }
-  }
-
-  return transcripts;
+  return results
+    .filter((result): result is PromiseFulfilledResult<string> => {
+      if (result.status === "rejected") {
+        console.error("Failed to fetch transcript:", result.reason);
+      }
+      return result.status === "fulfilled";
+    })
+    .map((result) => result.value);
 };
 
 const fireItUp = async (channelName: string): Promise<string[]> => {
