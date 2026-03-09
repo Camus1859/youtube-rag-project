@@ -1,4 +1,4 @@
-import { YoutubeTranscript } from "youtube-transcript";
+import { fetchTranscript } from "youtube-transcript-plus";
 import "dotenv/config";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import nodeFetch from "node-fetch";
@@ -105,10 +105,7 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
   for (const videoId of videoIds) {
     try {
-      // Use proxied fetch for transcript requests (YouTube blocks cloud IPs)
-      const transcript = await withProxiedFetch(() =>
-        withRetry(() => YoutubeTranscript.fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError)
-      );
+      const transcript = await withRetry(() => fetchTranscript(videoId), 2, 500, shouldRetryOnNetworkError);
       const fullTranscript = transcript.map((entry) => entry.text).join(" ");
       transcripts.push(fullTranscript);
     } catch (e) {
