@@ -106,7 +106,7 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 
 const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
-  const videoIds = await getVideoIds(channelId, 3);
+  const videoIds = await getVideoIds(channelId, 5);
   const transcripts = await getTranscripts(videoIds);
 
   const allChunks = transcripts.flatMap((t) => chunkText(t));
