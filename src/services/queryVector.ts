@@ -99,7 +99,7 @@ const askQuestion = async (
         metrics: { ...baseMetrics, schemaValidated: true },
       };
     } else {
-      console.error("Zod validation failed:", result.error.format());
+      console.error("Zod validation failed:", result.error.issues);
       return {
         message: rawText,
         action: "provide_analysis",
