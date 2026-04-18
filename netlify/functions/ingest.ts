@@ -18,9 +18,8 @@ const securityHeaders = {
   "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
 };
 
-
 const handler: Handler = async (event) => {
-  const uniqueRequestId =  crypto.randomUUID();
+  const uniqueRequestId = crypto.randomUUID();
 
   if (event.httpMethod !== "POST") {    
     return {
