@@ -2,7 +2,6 @@ import OpenAI from "openai";
 import "dotenv/config";
 import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 
-
 const openai = new OpenAI();
 
 const textToVector = async (text: string): Promise<number[]> => {
