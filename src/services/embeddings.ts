@@ -6,7 +6,7 @@ import { shouldRetryOnNetworkError, withRetry } from "../utils/retry.js";
 const openai = new OpenAI();
 
 const textToVector = async (text: string): Promise<number[]> => {
-  const response = await  withRetry(() => openai.embeddings.create({
+  const response = await withRetry(() => openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
     encoding_format: "float",
