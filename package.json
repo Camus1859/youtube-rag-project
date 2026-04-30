@@ -5,7 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "cd frontend && npm run dev"
   },
   "repository": {
@@ -39,6 +40,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@netlify/functions": "^5.1.2"
+    "@netlify/functions": "^5.1.2",
+    "vitest": "^4.1.5"
   }
 }
