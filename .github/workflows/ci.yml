@@ -16,7 +16,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm install
         working-directory: frontend
-      - run: npx tsc --noEmit
+      - run: npx tsc -b
         working-directory: frontend
 
   test:
