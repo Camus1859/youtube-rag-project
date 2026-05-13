@@ -18,6 +18,8 @@ function App() {
   const [loadingStep, setLoadingStep] = useState<number>(0)
   const [idempotencyKey, setIdempotencyKey] = useState<string>('')
 
+  asdfasdf
+
   useEffect(() => {
     if (view !== 'loading') {
       setLoadingStep(0)
