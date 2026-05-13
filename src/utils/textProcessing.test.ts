@@ -11,7 +11,7 @@ describe("chunkText", () => {
   it("splits text into multiple chunks at 500 words", () => {
     const text = "word ".repeat(1000).trim();
     const chunks = chunkText(text);
-    expect(chunks.length).toBeLessThan(1);
+    expect(chunks.length).toBeGreaterThan(1);
   });
 
   it("each chunk has at most 500 words", () => {
