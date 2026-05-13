@@ -14,6 +14,10 @@ jobs:
           node-version: 22.21.1
       - run: npm install
       - run: npx tsc --noEmit
+      - run: npm install
+        working-directory: frontend
+      - run: npx tsc --noEmit
+        working-directory: frontend
 
   test:
     runs-on: ubuntu-latest
