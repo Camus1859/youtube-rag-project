@@ -15,6 +15,9 @@ const securityHeaders = {
   "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
 };
 
+const x: number = 'hello'
+
+
 function sanitizeInput(input: string): string {
   const patterns = [
     /ignore (all )?(previous|prior|above) (instructions|prompts)/gi,
