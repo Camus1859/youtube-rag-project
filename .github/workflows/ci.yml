@@ -28,7 +28,7 @@ jobs:
           node-version: 22.21.1
       - run: npm install
       - run: npm test
-  
+
   build:
     runs-on: ubuntu-latest
     steps:
