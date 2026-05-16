@@ -75,13 +75,16 @@ const getVideoIds = async (
   maxResults = 10,
 ): Promise<string[]> => {
   const playlistId = `UU${channelId.substring(2)}`;
-  const endpoint = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=${maxResults}&key=${apiKey}`;
+  const endpoint = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${apiKey}`;
 
   try {
     const res = await withRetry(()=> fetch(endpoint), 2, 500, shouldRetryOnNetworkError);
     if (!res.ok) throw new Error("Failed to fetch playlist items");
     const data = await res.json();
-    return data.items.map((item: any) => item.snippet.resourceId.videoId);
+    const allVideoIds: string[] = data.items.map((item: any) => item.snippet.resourceId.videoId);
+
+    const filtered = await filterOutShorts(allVideoIds);
+    return filtered.slice(0, maxResults);
   } catch (e) {
     console.error(e);
     throw e;
