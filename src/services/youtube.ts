@@ -91,6 +91,23 @@ const getVideoIds = async (
   }
 };
 
+const filterOutShorts = async (videoIds: string[]): Promise<string[]> => {
+  const ids = videoIds.join(",");
+  const endpoint = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids}&key=${apiKey}`;
+
+  const res = await withRetry(() => fetch(endpoint), 2, 500, shouldRetryOnNetworkError);
+  if (!res.ok) throw new Error("Failed to fetch video details");
+  const data = await res.json();
+
+  return data.items
+    .filter((item: any) => {
+      const duration = item.contentDetails.duration;
+      const seconds = parseDuration(duration);
+      return seconds > 180;
+    })
+    .map((item: any) => item.id);
+};
+
 const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
   const results = await Promise.allSettled(
     videoIds.map((videoId) =>
