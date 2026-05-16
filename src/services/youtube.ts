@@ -138,6 +138,9 @@ const getTranscripts = async (videoIds: string[]): Promise<string[]> => {
 const fireItUp = async (channelName: string): Promise<string[]> => {
   const channelId = await getYoutuberId(channelName);
   const videoIds = await getVideoIds(channelId, 5);
+  if (videoIds.length === 0) {
+    throw new Error("No full-length videos found for this channel (only shorts) or channel is empty. ");
+  }
   const transcripts = await getTranscripts(videoIds);
 
   const allChunks = transcripts.flatMap((t) => chunkText(t));
