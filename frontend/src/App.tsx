@@ -17,6 +17,7 @@ function App() {
   const [isThinking, setIsThinking] = useState<boolean>(false)
   const [loadingStep, setLoadingStep] = useState<number>(0)
   const [idempotencyKey, setIdempotencyKey] = useState<string>('')
+  const [isNewNamespace, setIsNewNamespace] = useState<boolean>(true)
 
   useEffect(() => {
     if (view !== 'loading') {
@@ -40,6 +41,7 @@ function App() {
     const cleanedUrl = cleanYouTubeUrl(channelInput.trim())
     const namespaceString = getNamespaceFromInput(cleanedUrl)
     setChannelInput(cleanedUrl)
+    setIsNewNamespace(localStorage.getItem(namespaceString) !== 'true')
     setView('loading')
 
     const key = idempotencyKey || crypto.randomUUID()
@@ -174,9 +176,6 @@ function App() {
     setInputValue('')
   }
 
-  const namespaceString = getNamespaceFromInput(channelInput)
-  const doesNamespaceExistInLocalStorage = localStorage.getItem(namespaceString)
-
   if (view === 'input') {
     return (
       <InputScreen
@@ -191,7 +190,7 @@ function App() {
   if (view === 'loading') {
     return (
       <LoadingScreen
-        doesNamespaceExistInLocalStorage={doesNamespaceExistInLocalStorage}
+        isNewNamespace={isNewNamespace}
         loadingSteps={loadingSteps}
         loadingStep={loadingStep}
         ragTooltip={RagTooltip}
