@@ -1,5 +1,5 @@
 type LoadingScreenProps = {
-  doesNamespaceExistInLocalStorage: string | null
+  isNewNamespace: boolean
   loadingSteps: { step: number; title: string; detail: string }[]
   loadingStep: number
   ragTooltip: React.ReactNode
@@ -27,14 +27,14 @@ const shouldShowDetail = (stepIndex: number, currentMarker: number): boolean => 
 }
 
 const LoadingScreen = ({
-  doesNamespaceExistInLocalStorage,
+  isNewNamespace,
   loadingSteps,
   loadingStep,
   ragTooltip,
 }: LoadingScreenProps) => {
   const currentStep = loadingSteps[loadingStep]
 
-  if (doesNamespaceExistInLocalStorage !== 'true') {
+  if (isNewNamespace) {
     return (
       <div className="container">
         <h1>Learn From Creators</h1>
