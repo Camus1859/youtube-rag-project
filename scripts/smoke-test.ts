@@ -8,6 +8,7 @@ const TEST_NAMESPACE = 'SportsRadio94WIP'
 if (!PRODUCTION_URL) {
   throw new Error(' URL is missing')
 }
+console.log('Using production URL:', PRODUCTION_URL)
 
 if (!process.env.PINECONE_API_KEY) throw new Error('PINECONE_API_KEY is not defined')
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY })
