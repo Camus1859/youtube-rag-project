@@ -18,8 +18,12 @@ console.log('Deleting test namespace...')
 try {
   await pcIndex.namespace(TEST_NAMESPACE).deleteAll()
   console.log('Namespace deleted.')
-} catch {
-  console.log('Namespace not found, skipping delete.')
+} catch (error: any) {
+  if (error?.name === 'PineconeNotFoundError') {
+    console.log('Namespace not found, skipping delete.')
+  } else {
+    throw error
+  }
 }
 
 const handleAnalyze = async () => {
