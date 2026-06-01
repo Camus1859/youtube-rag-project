@@ -2,7 +2,7 @@ name: Weekly Production Smoke Test
 
 on:
   schedule:
-    - cron: '0 9 * * 1'
+    - cron: "0 9 * * 1"
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22.21.1
 
       - run: npm ci
 
